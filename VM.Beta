@@ -1,0 +1,237 @@
+#include <iostream>
+#include <cmath>
+#include <ctime>
+using namespace std;
+
+// Variables
+int item;
+bool state = false;
+double total = 0;
+int items[5] = { 30, 30, 30, 30, 30 };
+double sales[5] = { 0, 0, 0, 0, 0 };
+double currency[5] = { 0.05, 0.10, 0.25, 1.00, 5.00 };
+
+// Forward Declaration of Functions
+void Menu();
+void TurnMachineOn(bool x);
+static void Choice(int x);
+void Accept(int i);
+void Currency(double m);
+void PriceCheck(int i, double p);
+void ItemRefill(int i);
+void Timer(int hours);
+double TotalSales();
+double TotalCosts();
+double LaborCost();
+double Overhead();
+double Profit();
+
+// Machine Menu
+void Menu() {
+    cout << "\n\tMenu\n";
+    cout << "1. Coke:     $0.95\n";
+    cout << "2. Doritos:  $0.75\n";
+    cout << "3. Snicker:  $0.55\n";
+    cout << "4. Chex Mix: $0.60\n";
+    cout << "5. Pepsi:    $0.90\n";
+
+    cout << "Select Item (Enter 0 to stop): ";
+    cin >> item;
+
+    while ((item > 5 || item < 0)) {
+        cout << "Invalid Input\n";
+        cout << "Select Item: ";
+        cin >> item;
+    }
+
+    if (item == 0) {
+        return;
+    }
+    Choice(item);
+}
+
+// Turn machine on
+void TurnMachineOn(bool x) {
+    if (x == false) {
+        state = true;
+        cout << "Power is On\n";
+    }
+}
+
+// Select Item
+static void Choice(int x) {
+    item = x;
+    switch (item) {
+    case 1:
+        cout << "Coke: $0.95\n";
+        break;
+    case 2:
+        cout << "Doritos: $0.75\n";
+        break;
+    case 3:
+        cout << "Snicker: $0.55\n";
+        break;
+    case 4:
+        cout << "Chex Mix: $0.60\n";
+        break;
+    case 5:
+        cout << "Pepsi: $0.90\n";
+        break;
+    }
+    ItemRefill(item);
+    Accept(item);
+}
+
+// Accept payment
+void Accept(int i) {
+    double payment = 0;
+    cout << "Enter Payment: $";
+    cin >> payment;
+    Currency(payment);
+    PriceCheck(item, payment);
+}
+
+// Validate currency
+void Currency(double PaymentAmount) {
+    double payment = PaymentAmount;
+    if (payment != 0.05 && payment != 0.10 && payment != 0.25 && payment != 1.00 && payment != 5.00) {
+        do {
+            cout << "Invalid Currency\n";
+            cout << "Enter Payment: $";
+            cin >> payment;
+        } while (payment != 0.05 && payment != 0.10 && payment != 0.25 && payment != 1.00 && payment != 5.00);
+    }
+}
+
+// Check price and give change or ask for more
+void PriceCheck(int i, double p) {
+    double charge = 0, debt = 0, payment = p;
+    switch (i) {
+    case 1:
+        charge = 0.95;
+        break;
+    case 2:
+        charge = 0.75;
+        break;
+    case 3:
+        charge = 0.55;
+        break;
+    case 4:
+        charge = 0.60;
+        break;
+    case 5:
+        charge = 0.90;
+        break;
+    }
+    if (charge == payment) {
+        cout << "Thank you For Your Purchase\n";
+        sales[i - 1] += charge;
+    }
+    else if (charge < payment) {
+        cout << "Change: $" << payment - charge << endl;
+        cout << "Thank you For Your Purchase\n";
+        sales[i - 1] += charge;
+    }
+    else {
+        debt = charge - payment;
+        while (debt > 0) {
+            cout << "Debt: $" << debt << endl;
+            cout << "Enter Payment: $";
+            cin >> payment;
+            Currency(payment);
+            debt -= payment;
+        }
+        if (debt < 0) {
+            cout << "Change: $" << abs(debt) << endl;
+        }
+        sales[i - 1] += charge;
+    }
+}
+
+// Refill item stock
+void ItemRefill(int i) {
+    items[i - 1]--;
+    cout << "Remaining Stock: " << items[i - 1] << endl;
+
+    if (items[i - 1] < 5) {
+        cout << "Item low on stock, refilling...\n";
+        items[i - 1] = 30;
+    }
+}
+
+// Timer for 6 hours without using sleep
+void Timer(int hours) {
+    time_t startTime = time(0);
+    int currentHour = 0;
+
+    while (currentHour < hours) {
+        time_t currentTime = time(0);
+        double elapsedTime = difftime(currentTime, startTime);
+
+        if (elapsedTime >= 3600) {
+            currentHour++;
+            cout << "Hour " << currentHour << " passed.\n";
+            startTime = currentTime;
+        }
+    }
+}
+
+// Compute total sales
+double TotalSales() {
+    double total = 0;
+    for (int i = 0; i < 5; i++) {
+        total += sales[i];
+    }
+    return total;
+}
+
+// Compute total costs
+double TotalCosts() {
+    return TotalSales() * 0.35;
+}
+
+// Compute labor cost
+double LaborCost() {
+    return TotalSales() * 0.25;
+}
+
+// Compute overhead
+double Overhead() {
+    return TotalSales() * 0.05;
+}
+
+// Compute profit
+double Profit() {
+    return TotalSales() - (TotalCosts() + LaborCost() + Overhead());
+}
+
+// Main function
+int main() {
+    TurnMachineOn(state);
+
+    time_t startTime = time(0);
+    int simulationHours = 6;
+    time_t currentTime = time(0);
+    double elapsedTime = difftime(currentTime, startTime);
+
+    do {
+        
+
+        Menu();
+
+        currentTime = time(0);
+        elapsedTime = difftime(currentTime, startTime);
+        
+    } while (item != 0 && elapsedTime < simulationHours * 3600);
+
+    
+    cout << "Simulation ended after 6 hours.\n";
+
+    cout << "\nTotal Sales: $" << TotalSales() << endl;
+    cout << "Total Costs: $" << TotalCosts() << endl;
+    cout << "Labor Cost: $" << LaborCost() << endl;
+    cout << "Overhead: $" << Overhead() << endl;
+    cout << "Profit: $" << Profit() << endl;
+
+    return 0;
+}
